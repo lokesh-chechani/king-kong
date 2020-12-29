@@ -53,7 +53,8 @@ for _, strategy in helpers.each_strategy() do
       it("gets a 'hello-world' header", function()
         local r = client:get("/request", {
           headers = {
-            host = "test1.com"
+            host = "test1.com",
+            ["x-koko"] = "ape"
           }
         })
         -- validate that the request succeeded, response status 200
@@ -67,11 +68,12 @@ for _, strategy in helpers.each_strategy() do
 
 
 
-    describe("response", function()
+   describe("response", function()
       it("gets a 'bye-world' header", function()
         local r = client:get("/request", {
           headers = {
-            host = "test1.com"
+            host = "test1.com",
+            ["x-koko"] = "ape"
           }
         })
         -- validate that the request succeeded, response status 200

@@ -20,6 +20,13 @@ local schema = {
           { response_header = typedefs.header_name {
               required = true,
               default = "Bye-World" } },
+          { remote_url = {
+            required = true,
+            type = "string",
+            default = "http://mockbin.org/header/x-custom-header" } },
+          { koko_req_header = typedefs.header_name {
+            required = true,
+            default = "x-koko" } },
           { ttl = { -- self defined field
               type = "integer",
               default = 600,
@@ -27,6 +34,7 @@ local schema = {
               gt = 0, }}, -- adding a constraint for the value
         },
         entity_checks = {
+          -- TODO : Add validation checks for missing configs
           -- add some validation rules across fields
           -- the following is silly because it is always true, since they are both required
           { at_least_one_of = { "request_header", "response_header" }, },
