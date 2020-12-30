@@ -3,6 +3,7 @@
 
 --assert(ngx.get_phase() == "timer", "The world is coming to an end!")
 local req_get_headers = ngx.req.get_headers
+local cjson   = require "cjson"
 --local helpers = require "spec.helpers"
 --local HTTP_TIMEOUT = 5000
 
@@ -47,7 +48,8 @@ function plugin:access(plugin_conf)
   local res, err = httpc:request_uri(plugin_conf.remote_url, {
     method = "GET",
     headers = {
-      ["accept"] = "application/json"
+      ["accept"] = "application/json",
+      ["".. plugin_conf.koko_req_header .. ""] = tostring(x_koko_req_header)
     },
     keepalive_timeout = 60000,
     keepalive_pool = 10
@@ -56,12 +58,20 @@ function plugin:access(plugin_conf)
   kong.log.debug(" returned status code " .. tostring(res.status))
   local success = res.status < 400
 
-  for k,v in pairs(res.headers) do
-    kong.log.debug("Remote server response header " .. k .. ":" .. v)
-  end
+
   
-  if success then 
+  if success then
+    -- Retrive response and decode the json body
+   -- local response_body = res.body
+    kong.log.debug(" returned response ", tostring(res.body))
+    local json = cjson.decode(tostring(res.body))
+    local auth_token = res.headers["auth-token"]
+
+    kong.log.debug("authentication verfied, auth token :: ", auth_token)
+    kong.log.debug("authentication verfied, response :: ", json.koko)
+
     ngx.req.set_header(plugin_conf.request_header, "this is on a request")
+
   else
     kong.log.debug(" Unsucessful handling  ")
     return kong.response.error(401, "Invalid request")
