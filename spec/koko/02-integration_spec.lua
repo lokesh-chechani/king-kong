@@ -48,26 +48,52 @@ for _, strategy in helpers.each_strategy() do
     end)
 
 
-
     describe("request", function()
-      it("gets a 'hello-world' header", function()
+      it("gets 200 and auth token header on sucess remote call", function()
         local r = client:get("/request", {
           headers = {
             host = "test1.com",
-            ["x-koko"] = "ape"
+            ["x-koko-req"] = "ape"
           }
         })
-        -- validate that the request succeeded, response status 200
+        -- validate that request processed and remote call succeeded -> response status 200
         assert.response(r).has.status(200)
-        -- now check the request (as echoed by mockbin) to have the header
-        local header_value = assert.request(r).has.header("hello-world")
+        -- now check the request to have the header
+        local header_value = assert.request(r).has.header("x-koko-custom")
         -- validate the value of that header
-        assert.equal("this is on a request", header_value)
+        assert.is_not_nil(header_value)
+
+        --assert.equal("ape", header_value)
+      end)
+    end)
+
+    describe("request", function()
+      it("gets 400 on missing custom client request header", function()
+        local r = client:get("/request", {
+          headers = {
+            host = "test1.com"
+          }
+        })
+        -- validate that request processed and remote call succeeded -> response status 200
+        assert.response(r).has.status(400)
+      end)
+    end)
+
+    describe("request", function()
+      it("gets 401 on invalid value in custom client request header", function()
+        local r = client:get("/request", {
+          headers = {
+            host = "test1.com",
+            ["x-koko-req"] = "i am unauthorized"
+          }
+        })
+        -- validate that request processed and remote call succeeded -> response status 200
+        assert.response(r).has.status(401)
       end)
     end)
 
 
-
+--[[
    describe("response", function()
       it("gets a 'bye-world' header", function()
         local r = client:get("/request", {
@@ -83,7 +109,7 @@ for _, strategy in helpers.each_strategy() do
         -- validate the value of that header
         assert.equal("this is on the response", header_value)
       end)
-    end)
+    end) --]]
 
   end)
 end

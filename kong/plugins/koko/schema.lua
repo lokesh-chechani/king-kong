@@ -14,19 +14,19 @@ local schema = {
         type = "record",
         fields = {
           -- a standard defined field (typedef), with some customizations
-          { request_header = typedefs.header_name {
+          { client_request_header = typedefs.header_name {
               required = true,
-              default = "Hello-World" } },
-          { response_header = typedefs.header_name {
-              required = true,
-              default = "Bye-World" } },
+              default = "x-koko-req" } },
           { remote_url = {
             required = true,
             type = "string",
             default = "http://6eg44.mocklab.io/thing/koko" } },
-          { koko_req_header = typedefs.header_name {
+          { koko_remote_header = typedefs.header_name {
             required = true,
-            default = "x-koko" } },
+            default = "x-koko-remote" } },
+          { koko_custom_header = typedefs.header_name {
+            required = true,
+            default = "x-koko-custom" } },
           { ttl = { -- self defined field
               type = "integer",
               default = 600,
@@ -37,9 +37,9 @@ local schema = {
           -- TODO : Add validation checks for missing configs
           -- add some validation rules across fields
           -- the following is silly because it is always true, since they are both required
-          { at_least_one_of = { "request_header", "response_header" }, },
+          { at_least_one_of = { "client_request_header", "koko_custom_header" }, },
           -- We specify that both header-names cannot be the same
-          { distinct = { "request_header", "response_header"} },
+          { distinct = { "client_request_header", "koko_custom_header"} },
         },
       },
     },

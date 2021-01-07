@@ -4,6 +4,7 @@
 --assert(ngx.get_phase() == "timer", "The world is coming to an end!")
 local req_get_headers = ngx.req.get_headers
 local cjson   = require "cjson"
+local jwt_decoder = require "kong.plugins.jwt.jwt_parser"
 --local helpers = require "spec.helpers"
 --local HTTP_TIMEOUT = 5000
 
@@ -33,23 +34,27 @@ end --]]
 -- runs in the 'access_by_lua_block'
 function plugin:access(plugin_conf)
 
-  kong.log.debug("Koko says hi from the 'access' handler")
+  kong.log.debug("Executing 'access' handler")
 
-  -- your custom code here
   kong.log.inspect(plugin_conf)   -- check the logs for a pretty-printed config!
 
-  local x_koko_req_header = ngx.req.get_headers()[plugin_conf.koko_req_header]
+  local client_req_header_val = ngx.req.get_headers()[plugin_conf.client_request_header]
 
-  kong.log.debug("retrived custom header " .. plugin_conf.koko_req_header .. " with value " .. ngx.req.get_headers()[plugin_conf.koko_req_header])
+  if(client_req_header_val == nil) then
+    kong.log.debug("Missing mandatory client header ", plugin_conf.client_request_header)
+    return kong.response.error(400, "Missing header - " .. plugin_conf.client_request_header)
+  end
 
-  kong.log.debug("calling remote server :: ", plugin_conf.remote_url)
+  kong.log.debug("retrived custom header " .. plugin_conf.client_request_header .. " with value " .. client_req_header_val)
+
+  kong.log.debug("calling remote auth server :: ", plugin_conf.remote_url)
   local http = require "resty.http"
   local httpc = http.new()
   local res, err = httpc:request_uri(plugin_conf.remote_url, {
     method = "GET",
     headers = {
       ["accept"] = "application/json",
-      ["".. plugin_conf.koko_req_header .. ""] = tostring(x_koko_req_header)
+      ["".. plugin_conf.koko_remote_header .. ""] = tostring(client_req_header_val)
     },
     keepalive_timeout = 60000,
     keepalive_pool = 10
@@ -63,17 +68,16 @@ function plugin:access(plugin_conf)
   if success then
     -- Retrive response and decode the json body
    -- local response_body = res.body
+    kong.log.debug("Sucessful remote call")
     kong.log.debug(" returned response ", tostring(res.body))
+    
     local json = cjson.decode(tostring(res.body))
     local auth_token = res.headers["auth-token"]
-
-    kong.log.debug("authentication verfied, auth token :: ", auth_token)
-    kong.log.debug("authentication verfied, response :: ", json.koko)
-
-    ngx.req.set_header(plugin_conf.request_header, "this is on a request")
+    
+    ngx.req.set_header(plugin_conf.koko_custom_header, auth_token)
 
   else
-    kong.log.debug(" Unsucessful handling  ")
+    kong.log.debug("Unsucessful remote call")
     return kong.response.error(401, "Invalid request")
   end
 
@@ -147,7 +151,6 @@ end
 function plugin:header_filter(plugin_conf)
 
   kong.log.debug("Koko says hi from the 'header_filter' handler")
-
 
   -- your custom code here, for example;
   ngx.header[plugin_conf.response_header] = "this is on the response"
