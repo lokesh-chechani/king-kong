@@ -74,6 +74,16 @@ function plugin:access(plugin_conf)
     local json = cjson.decode(tostring(res.body))
     local auth_token = res.headers["auth-token"]
     
+    -- Verifying JWT - Decode token
+    local jwt, err = jwt_decoder:new(auth_token)
+    if err then
+      return false, { status = 401, message = "Bad token; " .. tostring(err) }
+    end
+
+    kong.log.debug("jwt verfied, auth token :: ", auth_token)
+    kong.log.debug("rerived jwt claim [name] from jwt payload :: ", jwt.claims.name)
+    kong.log.debug("remote server response key [koko] :: ", json.koko)
+
     ngx.req.set_header(plugin_conf.koko_custom_header, auth_token)
 
   else
@@ -146,26 +156,6 @@ local function call_remote1(plugin_conf)
   return success
 
 end
-
--- runs in the 'header_filter_by_lua_block'
-function plugin:header_filter(plugin_conf)
-
-  kong.log.debug("Koko says hi from the 'header_filter' handler")
-
-  -- your custom code here, for example;
-  ngx.header[plugin_conf.response_header] = "this is on the response"
-
-end --]]
-
-
--- runs in the 'log_by_lua_block'
-function plugin:log(plugin_conf)
-
-  -- your custom code here
-  kong.log.debug("koko says hi from the 'log' handler")
-
-end --]]
-
 
 -- return our plugin object
 return plugin
