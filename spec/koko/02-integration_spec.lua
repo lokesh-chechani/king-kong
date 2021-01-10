@@ -37,6 +37,7 @@ for _, strategy in helpers.each_strategy() do
 
     lazy_teardown(function()
       helpers.stop_kong(nil, true)
+      
     end)
 
     before_each(function()
