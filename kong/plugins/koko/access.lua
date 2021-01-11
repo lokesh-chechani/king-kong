@@ -9,8 +9,7 @@ local error = error
 local _M = {}
 
 local function call_remote(conf)
-
-  kong.log.debug("say hi form remote1")
+  
   kong.log.debug("calling remote auth server :: ", conf.remote_url)
   local http = require "resty.http"
   local httpc = http.new()
@@ -37,7 +36,14 @@ local function call_remote(conf)
   kong.log.debug("Sucessful remote call")
   kong.log.debug("returned response ", tostring(res.body))
 
-  return res
+  -- arsing the Json : Fetching sample koko key from response
+  local json = cjson.decode(tostring(res.body))
+  kong.log.debug("remote server response key [koko] :: ", json.koko)
+
+  local auth_token = res.headers["auth-token"] --TODO "Externalized header name in config"
+  kong.log.debug("Retrived jwt token :: ", auth_token)
+
+  return auth_token
   
 end
 
@@ -45,26 +51,42 @@ function _M.execute(conf)
     
   kong.log.debug("Executing 'access' handler")
 
-  kong.log.inspect(conf)   -- check the logs for a pretty-printed config!
+  kong.log.inspect(conf)   -- pretty-printed config in logs
 
   local client_req_header_val = ngx.req.get_headers()[conf.client_request_header]
 
   if(client_req_header_val == nil) then
     kong.log.debug("Missing mandatory client header ", conf.client_request_header)
-    return kong.response.error(400, "Missing header - " .. conf.client_request_header)
+    return kong.response.error(400, "Missing header " .. conf.client_request_header)
   end
 
   kong.log.debug("retrived custom header " .. conf.client_request_header .. " with value " .. client_req_header_val)
 
-  local response, err = call_remote(conf)
+  --TODO Caching
+  -- For simplicity - using incoming header value - email as a key
+  
+  local auth_token, err = kong.cache:get(client_req_header_val, {ttl = conf.ttl}, call_remote, conf)
 
-  if not response then
+  local c_ttl, c_err, c_value = kong.cache:probe(client_req_header_val)
+
+  kong.log.debug("probing cache, any error ", c_err)
+  kong.log.debug("probing cache, remaing ttl ", c_ttl)
+  kong.log.debug("probing cache, cached value ", c_value)
+
+  if c_err then
+    kong.log.err("could not retrieve user", c_err)
+    return kong.response.exit(500, "Unexpected error")
+  end
+
+  -- local response, err = call_remote(conf)
+
+  if not auth_token then
     kong.log.debug("Error while calling remote")
     return kong.response.error(401, "Invalid request")
   end
   
-  local auth_token = response.headers["auth-token"] --TODO "Externalized header name in config"
-  kong.log.debug("jwt verfied, auth token :: ", auth_token)
+  
+  kong.log.debug("validating jwt auth token :: ", auth_token)
   
   -- Verifying JWT - Decode token
   local jwt, err = jwt_decoder:new(auth_token)
@@ -75,11 +97,6 @@ function _M.execute(conf)
 
   -- Fetching a key from JWT token payload
   kong.log.debug("rerived jwt claim [name] from jwt payload :: ", jwt.claims.name)
-
-  --Parsing the Json : Fetching sample koko key from response
-  local json = cjson.decode(tostring(response.body))
-  kong.log.debug("remote server response key [koko] :: ", json.koko)
-
   -- Setting auth header for downstream services
   ngx.req.set_header(conf.koko_custom_header, auth_token)
   

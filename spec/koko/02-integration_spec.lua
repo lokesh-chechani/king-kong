@@ -48,7 +48,6 @@ for _, strategy in helpers.each_strategy() do
       if client then client:close() end
     end)
 
-
     describe("request", function()
       it("gets 200 and auth token header on sucess remote call", function()
         local r = client:get("/request", {

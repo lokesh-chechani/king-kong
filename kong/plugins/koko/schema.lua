@@ -17,7 +17,7 @@ local schema = {
           { client_request_header = typedefs.header_name {
               required = true,
               default = "x-koko-req" } },
-          { remote_url = typedefs.url {
+          { remote_url = typedefs.url { -- by typedef url - inferring url symantic validation
             required = true,
             default = "http://6eg44.mocklab.io/thing/koko" } },
           { koko_remote_header = typedefs.header_name {
@@ -28,12 +28,11 @@ local schema = {
             default = "x-koko-custom" } },
           { ttl = { -- self defined field
               type = "integer",
-              default = 600,
+              default = 3600,
               required = true,
               gt = 0, }}, -- adding a constraint for the value
         },
         entity_checks = {
-          -- TODO : Add validation checks for missing configs
           -- We specify that both header-names cannot be the same
           { distinct = { "client_request_header", "koko_custom_header"} },
         },
