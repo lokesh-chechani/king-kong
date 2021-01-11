@@ -1,16 +1,17 @@
-[![Build Status][badge-travis-image]][badge-travis-url]
+Sample Kong Auth Plugin
+=======================
 
-Kong plugin template
-====================
+This repository contains sample auth kong plugin with following capability.
 
-This repository contains a very simple Kong plugin template to get you
-up and running quickly for developing your own plugins.
+- Callling dummy remote Auth server, if Auth server return 200 and then grabing JWT token from remote server response and send it to downstream services
+- Capability to externalize configs - like various header, remote server url, ttl etc..
+- Capability to JWT validation and decode it
+- Capability to JSON response tokenization
 
-This template was designed to work with the
-[`kong-pongo`](https://github.com/Kong/kong-pongo) and
-[`kong-vagrant`](https://github.com/Kong/kong-vagrant) development environments.
+This Plugin has written using Lua scripting and using [`lua-nginx-module`](https://github.com/openresty/lua-nginx-module) & using Lua OpenResty Ngx API ['openresty-ngx-api'](https://openresty-reference.readthedocs.io/en/latest/Lua_Nginx_API/?q=assert&check_keywords=yes&area=default)
 
-Please check out those repos `README` files for usage instructions.
+The base template for this plugin is [`kong-plugin`](https://github.com/Kong/kong-plugin)
 
-[badge-travis-url]: https://travis-ci.org/Kong/kong-plugin/branches
-[badge-travis-image]: https://travis-ci.com/Kong/kong-plugin.svg?branch=master
+This plugin was designed to work with the
+[`kong-pongo`](https://github.com/Kong/kong-pongo)
+
