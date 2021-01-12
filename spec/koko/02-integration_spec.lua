@@ -53,7 +53,7 @@ for _, strategy in helpers.each_strategy() do
         local r = client:get("/request", {
           headers = {
             host = "test1.com",
-            ["x-koko-req"] = "ape"
+            ["x-koko-req"] = "koko@ape.com"
           }
         })
         -- validate that request processed and remote call succeeded -> response status 200
@@ -84,7 +84,7 @@ for _, strategy in helpers.each_strategy() do
         local r = client:get("/request", {
           headers = {
             host = "test1.com",
-            ["x-koko-req"] = "i am unauthorized"
+            ["x-koko-req"] = "iam@unauthorized.com"
           }
         })
         -- validate that request processed and remote call succeeded -> response status 200

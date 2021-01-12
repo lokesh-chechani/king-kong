@@ -62,8 +62,7 @@ function _M.execute(conf)
 
   kong.log.debug("retrived custom header " .. conf.client_request_header .. " with value " .. client_req_header_val)
 
-  --TODO Caching
-  -- For simplicity - using incoming header value - email as a key
+  -- Caching - Using incoming header value - email as a caching key
   
   local auth_token, err = kong.cache:get(client_req_header_val, {ttl = conf.ttl}, call_remote, conf)
 
