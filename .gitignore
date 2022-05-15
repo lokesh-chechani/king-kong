@@ -3,3 +3,26 @@ servroot
 
 # packed distribution format for LuaRocks
 *.rock
+# exclude Pongo shell history
+.pongo
+# exclude LuaCov statistics file
+luacov.stats.out
+# exclude LuaCov report
+luacov.report.out
+
+.DS_Store
+
+# testing directory
+ci/docker-compose-kong-traditional/docker-compose.yaml
+ci/docker-compose-kong-hybrid/docker-compose.yaml
+ci/docker-compose-kong-hybrid/certs
+
+# exclude certs
+certs
+*.crt
+*.key
+*.csr
+*.srl
+
+
+
