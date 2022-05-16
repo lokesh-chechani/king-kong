@@ -73,16 +73,16 @@ function do_authentication(conf)
     }
   end
 
-  -- local cache = kong.cache
-  -- local cache_key = fmt("rflex_oauth2_introspection:%s", access_token)
-  -- kong.log.debug("IntrospectionHandler:do_authentication():: cache_key = ", cache_key)
+  local cache = kong.cache
+  local cache_key = fmt("rflex_oauth2_introspection:%s", access_token)
+  kong.log.debug("IntrospectionHandler:do_authentication():: cache_key = ", cache_key)
 
-  -- local introspection_response, err = cache:get(cache_key,
-  --                                     { ttl = conf.ttl_seconds },
-  --                                     call_remote_introspection, conf,
-  --                                     access_token, internal_auth_token)
+  local introspection_response, err = cache:get(cache_key,
+                                      { ttl = conf.ttl_seconds },
+                                      call_remote_introspection, conf,
+                                      access_token, internal_auth_token)
   
-  local introspection_response, err = call_remote_introspection(conf,access_token, internal_auth_token)
+  -- local introspection_response, err = call_remote_introspection(conf,access_token, internal_auth_token)
 
   kong.log.debug("IntrospectionHandler:do_authentication():: introspection_response = ", introspection_response)
   if err then
@@ -108,7 +108,7 @@ function do_authentication(conf)
 
 
   -- Set header
-  kong.log.debug("IntrospectionHandler:do_authentication():: Valid access token, setting up upstream request header idp_user_id = "..introspect_result.userId..", idp_customer_id = "..introspect_result.customerId..", idp_token_active = "..introspect_result.active)
+  kong.log.debug("IntrospectionHandler:do_authentication():: Valid access token, setting up upstream request header idp_user_id = "..introspect_result.userId..", idp_customer_id = "..introspect_result.customerId)
 
   set_header("idp_user_id", introspect_result.userId)
   set_header("idp_customer_id", introspect_result.customerId)
@@ -135,8 +135,8 @@ function call_remote_introspection(conf, accessToken, internalToken)
       Accept = "application/json",
       Authorization = internalToken,
       -- Providing some additional information about the request to introspection endpoint
-      -- ["X-Request-Http-Method"] = kong.request.get_method(),
-      -- ["X-Request-Path"] = kong.request.get_path()
+      ["X-Request-Http-Method"] = kong.request.get_method(),
+      ["X-Request-Path"] = kong.request.get_path()
     },
     keepalive_timeout = conf.timeout_ms,
     keepalive_pool = conf.keeplive_ms

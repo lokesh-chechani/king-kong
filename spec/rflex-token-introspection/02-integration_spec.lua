@@ -7,10 +7,11 @@ local PLUGIN_NAME = "rflex-token-introspection"
 for _, strategy in helpers.each_strategy() do
   describe(PLUGIN_NAME .. ": (access) [#" .. strategy .. "]", function()
     local client
+    local db_strategy = strategy ~= "off" and strategy or nil
 
     lazy_setup(function()
 
-      local bp = helpers.get_db_utils(strategy, nil, { PLUGIN_NAME })
+      local bp = helpers.get_db_utils(db_strategy, nil, { PLUGIN_NAME })
 
       -- Inject a test route. No need to create a service, there is a default
       -- service which will echo the request.
@@ -27,7 +28,7 @@ for _, strategy in helpers.each_strategy() do
       -- start kong
       assert(helpers.start_kong({
         -- set the strategy
-        database   = strategy,
+        database   = db_strategy,
         -- use the custom test template to create a local mock server
         nginx_conf = "spec/fixtures/custom_nginx.template",
         -- make sure our plugin gets loaded
@@ -50,7 +51,7 @@ for _, strategy in helpers.each_strategy() do
 
     describe("request", function()
       it("gets 200 and auth token header on sucess remote call", function()
-        local r = client:post("/request", {
+        local r = client:get("/request", {
           headers = {
             host = "test1.com",
             Authorization = "randomAccessToken",
@@ -60,11 +61,12 @@ for _, strategy in helpers.each_strategy() do
         -- validate that request processed and remote call succeeded -> response status 200
         assert.response(r).has.status(200)
         -- now check the request to have the header
-        -- local header_value = assert.request(r).has.header("x-koko-custom")
+        local idp_user_id_header_value = assert.request(r).has.header("idp_user_id")
         -- -- validate the value of that header
-        -- assert.is_not_nil(header_value)
-
-        --assert.equal("ape", header_value)
+        assert.is_not_nil(idp_user_id_header_value)
+        local idp_customer_id_header_value = assert.request(r).has.header("idp_customer_id")
+        -- -- validate the value of that header
+        assert.is_not_nil(idp_customer_id_header_value)
       end)
     end)
     
