@@ -14,12 +14,12 @@ local schema = {
         type = "record",
         fields = {
           -- a standard defined field (typedef), with some customizations
-          { rflex_internal_token_request_header = typedefs.header_name {
+          { rflex_internal_token_header = typedefs.header_name {
               required = true,
               default = "x-rflex-internal-token" } },
           { rflex_introspection_url = typedefs.url {
             required = true,
-            default = "http://6eg44.mocklab.io/thing/koko" } }, -- TODO - Change the default accordingly
+            default = "https://6eg44.mocklab.io/rlfex/introspection" } }, -- TODO - Change the default accordingly
           { timeout_ms = { 
             type = "integer",
             required = true,

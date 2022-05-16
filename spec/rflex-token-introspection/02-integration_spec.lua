@@ -1,7 +1,7 @@
 local helpers = require "spec.helpers"
 
 
-local PLUGIN_NAME = "koko"
+local PLUGIN_NAME = "rflex-token-introspection"
 
 
 for _, strategy in helpers.each_strategy() do
@@ -50,47 +50,48 @@ for _, strategy in helpers.each_strategy() do
 
     describe("request", function()
       it("gets 200 and auth token header on sucess remote call", function()
-        local r = client:get("/request", {
+        local r = client:post("/request", {
           headers = {
             host = "test1.com",
-            ["x-koko-req"] = "koko@ape.com"
+            Authorization = "randomAccessToken",
+            ["x-rflex-internal-token"] = "randomInternaltoken"
           }
         })
         -- validate that request processed and remote call succeeded -> response status 200
         assert.response(r).has.status(200)
         -- now check the request to have the header
-        local header_value = assert.request(r).has.header("x-koko-custom")
-        -- validate the value of that header
-        assert.is_not_nil(header_value)
+        -- local header_value = assert.request(r).has.header("x-koko-custom")
+        -- -- validate the value of that header
+        -- assert.is_not_nil(header_value)
 
         --assert.equal("ape", header_value)
       end)
     end)
     
-    describe("request", function()
-      it("gets 400 on missing custom client request header", function()
-        local r = client:get("/request", {
-          headers = {
-            host = "test1.com"
-          }
-        })
-        -- validate that request processed and remote call succeeded -> response status 200
-        assert.response(r).has.status(400)
-      end)
-    end)
+    -- describe("request", function()
+    --   it("gets 400 on missing custom client request header", function()
+    --     local r = client:get("/request", {
+    --       headers = {
+    --         host = "test1.com"
+    --       }
+    --     })
+    --     -- validate that request processed and remote call succeeded -> response status 200
+    --     assert.response(r).has.status(400)
+    --   end)
+    -- end)
 
-    describe("request", function()
-      it("gets 401 on invalid value in custom client request header", function()
-        local r = client:get("/request", {
-          headers = {
-            host = "test1.com",
-            ["x-koko-req"] = "iam@unauthorized.com"
-          }
-        })
-        -- validate that request processed and remote call succeeded -> response status 200
-        assert.response(r).has.status(401)
-      end)
-    end)
+    -- describe("request", function()
+    --   it("gets 401 on invalid value in custom client request header", function()
+    --     local r = client:get("/request", {
+    --       headers = {
+    --         host = "test1.com",
+    --         ["x-koko-req"] = "iam@unauthorized.com"
+    --       }
+    --     })
+    --     -- validate that request processed and remote call succeeded -> response status 200
+    --     assert.response(r).has.status(401)
+    --   end)
+    -- end)
 
   end)
 end
